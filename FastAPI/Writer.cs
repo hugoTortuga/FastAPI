@@ -23,30 +23,37 @@ namespace FastAPI
             GenericObject = genericObject;
         }
 
-        public void WriteFile(OptionsWrite options)
+        public async void WriteFile(OptionsWrite options)
         {
-            if (DirectoryExist(DirectoryPath))
+            if (DirectoryExist(DirectoryPath) && !string.IsNullOrWhiteSpace(FileName))
             {
                 if(GenericObject != null && GenericObject.Attributes != null && GenericObject.Attributes.Count > 0)
                 {
-                    File.AppendAllText(DirectoryPath, "export class BeerRepository { " + "constructor(private pool: Pool) { }");
-                    
-                    
-                    if (options.ReadAll)
+                    string filePath = DirectoryPath + FileName + ".ts";
+                    using (var stream = File.Create(filePath))
                     {
-                        string readMethod = string.Empty;
-                        foreach (var attribute in GenericObject.Attributes)
-                        {
-                            readMethod += "async get" + GenericObject.ObjectName + "() { \n";
-                            readMethod += "return await this.pool.query(\"SELECT * FROM " + GenericObject.Schema + "." + GenericObject.ObjectName + "\"); \n";
-                            readMethod += "}\n";
-                        }
-                        File.AppendAllText(DirectoryPath, readMethod);
-                    }
+                        string fileStart = "export class BeerRepository { \n" +
+                            "     constructor(private pool: Pool) { }\n";
+                        await WriteLineUTF8(fileStart, stream);
 
-                    File.AppendAllText(DirectoryPath, "}");
+                        if (options.ReadAll)
+                        {
+                            string readMethod = string.Empty;
+                            readMethod += "     async get" + GenericObject.ObjectName + "() { \n";
+                            readMethod += "         return await this.pool.query(\"SELECT * FROM " + GenericObject.Schema + "." + GenericObject.ObjectName + "\"); \n";
+                            readMethod += "     }\n";
+                            await WriteLineUTF8(readMethod, stream);
+                        }
+                        await WriteLineUTF8("}", stream);
+                    }
                 }
             }
+        }
+
+        private async Task WriteLineUTF8(string line, FileStream stream)
+        {
+            var encodedShit = Encoding.UTF8.GetBytes(line);
+            await stream.WriteAsync(encodedShit, 0, encodedShit.Length);
         }
 
         private bool DirectoryExist(string path)

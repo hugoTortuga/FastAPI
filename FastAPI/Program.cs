@@ -14,7 +14,7 @@ namespace FastAPI
             Console.WriteLine("Bienvenue dans le projet FastAPI");
             Console.WriteLine("Entrez le chemin du répertoire");
 
-            string directoryPath = string.Empty;
+            string directoryPath = Console.ReadLine();
             string objectName = "user";
 
             var listAttributes = new List<GenericAttribute>() { 
@@ -24,7 +24,7 @@ namespace FastAPI
                 new GenericAttribute(typeof(DateTime), "birthDate")
             };
 
-            var genericObject = new GenericObject("testschema", "user", listAttributes);
+            var genericObject = new GenericObject("user", "testschema", listAttributes);
 
             try
             {
@@ -32,9 +32,11 @@ namespace FastAPI
                 writer.WriteFile(new OptionsWrite(true, true, true, true, true));
                 Console.WriteLine("Traitement terminé");
                 Console.WriteLine("");
+                Console.ReadKey();
             } catch (Exception ex)
             {
                 Console.WriteLine(ex);
+                Console.ReadKey();
             }
             
 
